@@ -1,11 +1,8 @@
 package controllers
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/gin-gonic/gin"
@@ -17,8 +14,9 @@ func FrameImages (c *gin.Context) {
 		ImageUrl string
 		FrameUrl string
 		FramedImage string
-		ImagePosition string
-		FramePosition string
+		ImageSize []int
+		FrameSize []int
+		ImagePosition []int
 	}
 
 	c.Bind(&body)
@@ -27,38 +25,32 @@ func FrameImages (c *gin.Context) {
 	frameImage := getFrameImage(body.FrameUrl)	
 
 	// Resize the frame image to match the size of the input image
-	frameImage.Thumbnail(1002,1024, vips.InterestingNone)
-	inputImage.Thumbnail(760,820, vips.InterestingNone)
-	// err = inputImage.ResizeWithVScale(float64(7),float64(7), vips.KernelLanczos3)
-	
-
+	frameImage.Thumbnail(body.FrameSize[0],body.FrameSize[1], vips.InterestingNone)
+	inputImage.Thumbnail(body.ImageSize[0],body.ImageSize[0], vips.InterestingNone)
 
 	// Combine the input image and the frame image using the composite function
-	frameImage.Composite(inputImage, vips.BlendModeDestOver, 80,85)
-	// err = frameImage.Composite(inputImage, vips.BlendModeOver, (frameImage.Width()-inputImage.Width())/2, (frameImage.Height()-inputImage.Height())/2)
-	
+	frameImage.Composite(inputImage, vips.BlendModeDestOver,body.ImagePosition[0],body.ImagePosition[0])	
 
 	// Export image to jpeg
-	out, metadata, err := frameImage.ExportJpeg(nil)
-
-	outFile, err := os.Create(fmt.Sprintf("new_image-%v.jpeg", time.Now().Unix()))
+	out, _, err := frameImage.ExportJpeg(nil)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(metadata)
-
-	outFile.Write(out)
-
-	// c.Status(200)
+	
+	// if we want to write the file to local
+	// _, err = os.Create(fmt.Sprintf("new_image-%v.jpeg", time.Now().Unix()))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// outFile.Write(out)
 
 	// Set response headers
 	c.Header("Content-Type", "image/jpeg")
-	// c.Header("Content-Disposition", "attachment; filename=new_image.jpeg")
-	// c.Header("Content-Length", strconv.Itoa(len(out)))
 
 	// Write image data to response body
 	c.Data(http.StatusOK, "image/jpeg", out)
 
+	// Set status
 	c.Status(http.StatusOK)
 }
 
