@@ -1,8 +1,12 @@
 package controllers
 
 import (
+	"encoding/base64"
+	"go-framing-engine/initializer"
+	"go-framing-engine/models"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/gin-gonic/gin"
@@ -43,6 +47,15 @@ func FrameImages (c *gin.Context) {
 	// 	panic(err)
 	// }
 	// outFile.Write(out)
+
+	// Encode image to base64 then insert to db
+	encodedImage := base64.StdEncoding.EncodeToString(out)
+	insertFramedImage := models.FramedImages{ImageUrl: body.ImageUrl, FrameUrl: body.FrameUrl, FramedImage: encodedImage, ImageSize: strconv.Itoa(body.ImageSize[0])+","+strconv.Itoa(body.ImageSize[1]),FrameSize: strconv.Itoa(body.FrameSize[0])+","+strconv.Itoa(body.FrameSize[1]),ImagePosition: strconv.Itoa(body.ImagePosition[0])+","+strconv.Itoa(body.ImagePosition[1])}
+	result := initializer.DB.Create(&insertFramedImage) // pass pointer of data to Create
+	if result.Error != nil {
+		c.Status(400)
+		return
+	}
 
 	// Set response headers
 	c.Header("Content-Type", "image/jpeg")

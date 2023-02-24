@@ -7,6 +7,7 @@ type FramedImages struct {
 	ImageUrl string
     FrameUrl string
     FramedImage string
-    ImagePosition string
-    FramePosition string
+    ImageSize string
+	FrameSize string
+	ImagePosition string
 }
