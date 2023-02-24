@@ -17,7 +17,6 @@ func init() {
 
 func main() {
 	r := gin.Default()
-	r.POST("/testFrame", controllers.TestCode)
 	r.POST("/posts", controllers.PostCreate)
 	r.POST("/frameImage", controllers.FrameImages)
 	r.GET("/posts", controllers.PostIndex)

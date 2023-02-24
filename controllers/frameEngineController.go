@@ -2,88 +2,102 @@ package controllers
 
 import (
 	"fmt"
-	"image"
-	"image/draw"
-	"image/jpeg"
-	"image/png"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/gin-gonic/gin"
-	"github.com/nfnt/resize"
-	"github.com/oliamb/cutter"
 )
 
-type ImageData struct {
-	ImageUrl      string   `json:"imageUrl"`
-	FrameUrl      string   `json:"frameUrl"`
-	ImagePosition []int    `json:"imagePosition"`
-	FramePosition []int    `json:"framePosition"`
+
+func FrameImages (c *gin.Context) {
+	var body struct {
+		ImageUrl string
+		FrameUrl string
+		FramedImage string
+		ImagePosition string
+		FramePosition string
+	}
+
+	c.Bind(&body)
+	
+	inputImage := getInputImage(body.ImageUrl)
+	frameImage := getFrameImage(body.FrameUrl)	
+
+	// Resize the frame image to match the size of the input image
+	frameImage.Thumbnail(1002,1024, vips.InterestingNone)
+	inputImage.Thumbnail(760,820, vips.InterestingNone)
+	// err = inputImage.ResizeWithVScale(float64(7),float64(7), vips.KernelLanczos3)
+	
+
+
+	// Combine the input image and the frame image using the composite function
+	frameImage.Composite(inputImage, vips.BlendModeDestOver, 80,85)
+	// err = frameImage.Composite(inputImage, vips.BlendModeOver, (frameImage.Width()-inputImage.Width())/2, (frameImage.Height()-inputImage.Height())/2)
+	
+
+	// Export image to jpeg
+	out, metadata, err := frameImage.ExportJpeg(nil)
+
+	outFile, err := os.Create(fmt.Sprintf("new_image-%v.jpeg", time.Now().Unix()))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(metadata)
+
+	outFile.Write(out)
+
+	// c.Status(200)
+
+	// Set response headers
+	c.Header("Content-Type", "image/jpeg")
+	// c.Header("Content-Disposition", "attachment; filename=new_image.jpeg")
+	// c.Header("Content-Length", strconv.Itoa(len(out)))
+
+	// Write image data to response body
+	c.Data(http.StatusOK, "image/jpeg", out)
+
+	c.Status(http.StatusOK)
 }
 
-func FrameImages (cg *gin.Context) {
-	var data ImageData
-		if err := cg.ShouldBindJSON(&data); err != nil {
-			cg.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+func getInputImage(imageUrl string) *vips.ImageRef {
+	resp, err := http.Get(imageUrl)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
 
-		// Load image from URL
-		resp, err := http.Get(data.ImageUrl)
-		if err != nil {
-			cg.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		defer resp.Body.Close()
+	inputData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
 
-		img, _, err := image.Decode(resp.Body)
-		if err != nil {
-			cg.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	inputImage, err := vips.NewImageFromBuffer(inputData)
+	if err != nil {
+		panic(err)
+	}
 
-		// Load frame image
-		f, err := os.Open(data.FrameUrl)
-		if err != nil {
-			cg.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		defer f.Close()
+	return inputImage
+}
 
-		frame, err := png.Decode(f)
-		if err != nil {
-			cg.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+func getFrameImage(frameUrl string) *vips.ImageRef {
+	resp, err := http.Get(frameUrl)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
 
-		// Resize frame image to match the size of the image
-		frame = resize.Resize(uint(data.ImagePosition[2]), uint(data.ImagePosition[3]), frame, resize.Lanczos3)
+	inputData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
 
-		// Crop image to match the position and size
-		croppedImg, err := cutter.Crop(img, cutter.Config{
-			Width:   data.ImagePosition[2],
-			Height:  data.ImagePosition[3],
-			Mode:    cutter.TopLeft, 
-			Anchor:  image.Point{data.ImagePosition[0], data.ImagePosition[1]},
-			Options: cutter.Ratio,
-		})
-		if err != nil {
-			cg.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	frameImage, err := vips.NewImageFromBuffer(inputData)
+	if err != nil {
+		panic(err)
+	}
 
-		// Create a new image and draw the frame and cropped image onto it
-		rgba := image.NewRGBA(image.Rect(0, 0, data.FramePosition[2], data.FramePosition[3]))
-		draw.Draw(rgba, rgba.Bounds(), frame, image.Point{data.ImagePosition[0], data.ImagePosition[1]}, draw.Src)
-		draw.Draw(rgba, rgba.Bounds(), croppedImg, image.Point{0, 0}, draw.Src)
-
-		// Encode the image as JPEG and write it to the response writer
-		if err := jpeg.Encode(cg.Writer, rgba, &jpeg.Options{Quality: 80}); err != nil {
-			cg.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		cg.Header("Content-Type", "image/jpeg")
-		cg.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", "framed_image.jpeg"))
-		cg.File("framed_image.jpeg")
+	return frameImage
 }

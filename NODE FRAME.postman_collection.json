@@ -1,0 +1,127 @@
+{
+	"info": {
+		"_postman_id": "5b3f1033-6746-4473-adbe-6ab7f6882c70",
+		"name": "NODE FRAME",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6198282"
+	},
+	"item": [
+		{
+			"name": "getImageWithFrame",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/getImgWithFrame?imageUrl=https://s3-ap-southeast-1.amazonaws.com/laku6-sku-marketing-photos/OA92410553548B9L-marketing-photo-app-1-1607074141.jpg&frameUrl=https://drive.google.com/uc?export=view%26id=14bROaMAHhrWVfGRbDRqnXrB9e3W9PgRP&imagePosition=80;80;700;760",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"getImgWithFrame"
+					],
+					"query": [
+						{
+							"key": "imageUrl",
+							"value": "https://s3-ap-southeast-1.amazonaws.com/laku6-sku-marketing-photos/OA92410553548B9L-marketing-photo-app-1-1607074141.jpg"
+						},
+						{
+							"key": "frameUrl",
+							"value": "https://drive.google.com/uc?export=view%26id=14bROaMAHhrWVfGRbDRqnXrB9e3W9PgRP"
+						},
+						{
+							"key": "imagePosition",
+							"value": "80;80;700;760"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "postImgWithFrame",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"imageUrl\": \"https://s3-ap-southeast-1.amazonaws.com/laku6-sku-marketing-photos/SGA6293515828U16K-marketing-photo-app-1-1607077673.jpg\",\r\n    \"frameUrl\": \"frame_new.png\",\r\n    \"imagePosition\": [80,100,700,760],\r\n    \"framePosition\": [0, 0, 1002, 1024]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/postImgWithFrame",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"postImgWithFrame"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "saveImg",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"imageUrl\": \"https://s3-ap-southeast-1.amazonaws.com/laku6-sku-marketing-photos/SGA6293515828U16K-marketing-photo-app-1-1607077673.jpg\",\r\n    \"frameUrl\": \"frame_new.png\",\r\n    \"imagePosition\": [80,80,700,760],\r\n    \"framePosition\": [0, 0, 1002, 1024]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/sendMsg",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"sendMsg"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "frameImage",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"imageUrl\": \"https://s3-ap-southeast-1.amazonaws.com/laku6-sku-marketing-photos/SGA6293515828U16K-marketing-photo-app-1-1607077673.jpg\",\r\n    \"frameUrl\": \"https://www.linkpicture.com/q/frame_new.png\",\r\n    \"imagePosition\": [80,80,700,760],\r\n    \"framePosition\": [0, 0, 1002, 1024]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/frameImage",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"frameImage"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
