@@ -11,6 +11,7 @@ import (
 func init() {
 	initializer.LoadEnv()
 	initializer.ConnectToDB()
+	go controllers.ImageProcessingConsumer()
 }
 
 
